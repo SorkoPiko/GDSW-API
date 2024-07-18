@@ -4,67 +4,25 @@ from fastapi import FastAPI
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
 from dotenv import load_dotenv
 from os import environ
 from redis import asyncio as aioredis
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from scrape import scrape_google_sheet
+import asyncio
 
-app = FastAPI()
 load_dotenv()
 mongo = MongoClient(
     f"mongodb+srv://{environ.get("MONGO_USERNAME")}:{environ.get("MONGO_PASSWORD")}@{environ.get("MONGO_ENDPOINT")}",
     server_api=ServerApi('1')
 )
 
-SERVICE_ACCOUNT_FILE = 'credentials.json'
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-credentials = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-service = build('sheets', 'v4', credentials=credentials)
 
-SPREADSHEET_ID = environ.get('SPREADSHEET_ID')
-SHEET_NAMES = {
-    'easy': 'Easy',
-    'normal': 'Normal',
-    'hard': 'Hard',
-    'harder': 'Harder',
-    'insane': 'Insane',
-    'easydemon': 'Easy Demon',
-    'mediumdemon': 'Medium Demon',
-    'harddemon': 'Hard Demon',
-    'insanedemon': 'Insane Demon',
-    'extremededemon': 'Extreme Demon'
-}
-
-
-async def calculate_range(sheet_name, column):
-    sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=f'{sheet_name}!{column}2:{column}').execute()
-    values = result.get('values', [])
-    return len(values) + 1
-
-
-@cache()
-async def get_cache():
-    return 1
-
-
-@app.get("/scrape")
-async def scrape_google_sheet():
-    values = []
-    for name in SHEET_NAMES.values():
-        last_row = await calculate_range(name, 'A')
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
-                                    range=f'{name}!A2:F{last_row}').execute()
-        values += result.get('values', [])
-
-    if not values:
-        return {"message": "No data found."}
-    else:
-        return {"data": values}
+async def scrapeloop():
+    while True:
+        await scrape_google_sheet(mongo)
+        await asyncio.sleep(86400)
 
 
 @asynccontextmanager
@@ -73,4 +31,27 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         f"redis://{environ.get('REDIS_USERNAME')}:{environ.get('REDIS_PASSWORD')}@{environ.get('REDIS_ENDPOINT')}"
     )
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
-    yield
+    task = asyncio.create_task(scrapeloop())
+    try:
+        yield
+    finally:
+        task.cancel()
+        await redis.close()
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@cache()
+async def get_cache():
+    return 1
+
+
+@app.get("/secretway/{level_id}")
+@cache(expire=3600)
+async def get_secretway(level_id: str):
+    collection = mongo['secretways']['levels']
+    data = collection.find_one({'_id': level_id})
+    if data == None:
+        return {"error": "No secret way found"}
+    return data
