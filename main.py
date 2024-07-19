@@ -4,8 +4,11 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
 
+from models import SecretWayResponse
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
@@ -21,7 +24,9 @@ mongo = MongoClient(
     server_api=ServerApi('1')
 )
 
+
 async def scheduler():
+    await scrape_google_sheet(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     while True:
         schedule.run_pending()
@@ -42,7 +47,13 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         await redis.close()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    title="Geometry Dash Secret Ways API",
+    description="An API to find secret ways in Geometry Dash levels",
+    version="1.0.1"
+)
+
 
 @cache()
 async def get_cache():
@@ -51,9 +62,15 @@ async def get_cache():
 
 @app.get("/secretway/{level_id}")
 @cache(expire=3600)
-async def get_secretway(level_id: str):
+async def get_secretway(level_id: int) -> SecretWayResponse:
     collection = mongo['secretways']['levels']
     data = collection.find_one({'_id': level_id})
-    if data == None:
-        return {"error": "No secret way found"}
-    return data
+    if data is None:
+        return SecretWayResponse(id=level_id, desc=None, src=None, sw=None, yt=None)
+    data["id"] = data.pop("_id")
+    return SecretWayResponse(**data)
+
+
+@app.exception_handler(404)
+async def not_found(request, exc):
+    return RedirectResponse("/docs")

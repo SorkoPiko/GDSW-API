@@ -44,7 +44,6 @@ async def get_sheet_id(sheet_name):
 
 
 async def scrape_google_sheet(client: MongoClient):
-    print("Scraping...")
     values = []
     for name in SHEET_NAMES.values():
         sheet_id = await get_sheet_id(name)
@@ -60,5 +59,10 @@ async def scrape_google_sheet(client: MongoClient):
 
     parsed_data = utils.parse_data(values)
     collection = client['secretways']['levels']
+    updated_ids = set()
+
     for key, value in parsed_data.items():
-        collection.update_one({'_id': key}, {'$set': value}, upsert=True)
+        collection.update_one({'_id': int(key)}, {'$set': value}, upsert=True)
+        updated_ids.add(int(key))
+
+    collection.delete_many({'_id': {'$nin': list(updated_ids)}})

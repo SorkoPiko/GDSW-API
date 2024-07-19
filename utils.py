@@ -21,7 +21,3 @@ def parse_data(data):
 
 def generate_cell_link(spreadsheet_id, sheet_id, row):
     return f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit#gid={sheet_id}&range=A{row}:F{row}"
-
-
-if __name__ == "__main__":
-    parse_data()
