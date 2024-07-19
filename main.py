@@ -9,7 +9,6 @@ from fastapi import FastAPI
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
-from mangum import Mangum
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from redis import asyncio as aioredis
@@ -44,7 +43,6 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(lifespan=lifespan)
-handler = Mangum(app)
 
 @cache()
 async def get_cache():
