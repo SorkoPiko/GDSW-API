@@ -1,8 +1,9 @@
-fastapi>=0.111.1
-fastapi_cache2[redis]>=0.1.0
-google_api_python_client>=2.137.0
-protobuf>=5.27.2
-pymongo>=4.5.0
-python-dotenv>=1.0.1
-pytube>=15.0.0
-schedule>=1.2.2
+fastapi==0.111.1
+fastapi_cache2[redis]==0.2.1
+google_api_python_client==2.137.0
+protobuf==5.27.2
+pydantic==2.8.2
+pymongo==4.8.0
+python-dotenv==1.0.1
+pytube==15.0.0
+schedule==1.2.2

@@ -9,7 +9,7 @@ def parse_data(data):
             try:
                 yt = f"https://youtu.be/{extract.video_id(i[4])}"
             except:
-                yt = ""
+                yt = None
         newdata.update({i[0]: {
             "sw": i[1],
             "desc": i[2],

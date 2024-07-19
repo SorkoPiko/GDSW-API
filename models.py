@@ -1,9 +1,14 @@
 from pydantic import BaseModel
 
 
-class SecretWayResponse(BaseModel):
+class SecretWay(BaseModel):
     id: int
-    desc: str | None
-    src: str | None
-    sw: str | None
+    desc: str
+    src: str
+    sw: str
     yt: str | None = None
+
+
+class SecretWayResponse(BaseModel):
+    found: bool = False
+    data: SecretWay | None = None
