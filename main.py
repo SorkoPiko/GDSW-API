@@ -14,7 +14,7 @@ import asyncio
 
 load_dotenv()
 mongo = MongoClient(
-    f"mongodb+srv://{environ.get("MONGO_USERNAME")}:{environ.get("MONGO_PASSWORD")}@{environ.get("MONGO_ENDPOINT")}",
+    f"mongodb+srv://{environ.get('MONGO_USERNAME')}:{environ.get('MONGO_PASSWORD')}@{environ.get('MONGO_ENDPOINT')}",
     server_api=ServerApi('1')
 )
 

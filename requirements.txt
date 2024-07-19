@@ -1,0 +1,5 @@
+fastapi~=0.111.1
+python-dotenv~=1.0.1
+redis~=5.1.0b7
+pymongo~=4.8.0
+pytube~=15.0.0
