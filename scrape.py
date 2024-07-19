@@ -44,6 +44,7 @@ async def get_sheet_id(sheet_name):
 
 
 async def scrape_google_sheet(client: MongoClient):
+    print("Scraping...")
     values = []
     for name in SHEET_NAMES.values():
         sheet_id = await get_sheet_id(name)

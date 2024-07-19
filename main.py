@@ -1,16 +1,20 @@
+import asyncio
+import schedule
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from os import environ
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
-from dotenv import load_dotenv
-from os import environ
-from redis import asyncio as aioredis
+from mangum import Mangum
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from redis import asyncio as aioredis
+
 from scrape import scrape_google_sheet
-import asyncio
 
 load_dotenv()
 mongo = MongoClient(
@@ -18,11 +22,11 @@ mongo = MongoClient(
     server_api=ServerApi('1')
 )
 
-
-async def scrapeloop():
+async def scheduler():
+    schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     while True:
-        await scrape_google_sheet(mongo)
-        await asyncio.sleep(86400)
+        schedule.run_pending()
+        await asyncio.sleep(1)
 
 
 @asynccontextmanager
@@ -31,7 +35,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         f"redis://{environ.get('REDIS_USERNAME')}:{environ.get('REDIS_PASSWORD')}@{environ.get('REDIS_ENDPOINT')}"
     )
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
-    task = asyncio.create_task(scrapeloop())
+    task = asyncio.create_task(scheduler())
     try:
         yield
     finally:
@@ -40,7 +44,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(lifespan=lifespan)
-
+handler = Mangum(app)
 
 @cache()
 async def get_cache():
