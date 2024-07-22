@@ -45,7 +45,6 @@ def parse_data(data):
                 "type": type_
             })
 
-        print(routes)
         newdata.update({i[0]: {
             "routes": routes,
             "src": i[3],

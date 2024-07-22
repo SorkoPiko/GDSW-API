@@ -10,7 +10,6 @@ class Route(BaseModel):
 
 
 class SecretWay(BaseModel):
-    desc: str
     src: str
     routes: list[Route]
     yt: str | None = None

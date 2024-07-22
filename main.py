@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
 
-from models import SecretWayResponse, SecretWay
+from models import SecretWayResponse, SecretWay, Route
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -51,7 +51,8 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="1.0.2"
+    version="1.0.2",
+    docs_url="/"
 )
 
 
@@ -67,12 +68,17 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
     data = collection.find_one({'_id': level_id})
     if data is None:
         return SecretWayResponse()
-    data["id"] = data.pop("_id")
+    data.pop("_id")
+    routes = data.pop("routes")
+    new_routes = []
+    for route in routes:
+        new_routes.append(Route(**route))
+    data["routes"] = new_routes
     if data["yt"] is None:
         data.pop("yt")
     return SecretWayResponse(found=True, data=SecretWay(**data))
 
 
-@app.exception_handler(404)
-async def not_found(request, exc):
-    return RedirectResponse("/docs")
+@app.get("/docs")
+async def docs_redirect(request, exc):
+    return RedirectResponse("/")
