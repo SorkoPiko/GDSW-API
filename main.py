@@ -79,6 +79,6 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
     return SecretWayResponse(found=True, data=SecretWay(**data))
 
 
-@app.get("/docs")
-async def docs_redirect(request, exc):
+@app.get("/docs", include_in_schema=False)
+async def docs_redirect():
     return RedirectResponse("/")
