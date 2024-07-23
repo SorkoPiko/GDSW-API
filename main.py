@@ -77,7 +77,7 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
     if data["yt"] is None:
         data.pop("yt")
     else:
-        data["yt"] = f"https:/youtu.be/{data["yt"]}"
+        data["yt"] = f"https:/youtu.be/{data['yt']}"
     return SecretWayResponse(found=True, data=SecretWay(**data))
 
 
