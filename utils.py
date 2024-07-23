@@ -7,7 +7,7 @@ def parse_data(data):
         yt = ""
         if len(i) == 5:
             try:
-                yt = f"https://youtu.be/{extract.video_id(i[4])}"
+                yt = extract.video_id(i[4])
             except:
                 yt = None
         if "or" in i[1].lower():
