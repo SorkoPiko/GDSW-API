@@ -4,10 +4,10 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
 
-from models import SecretWayResponse, SecretWay, Route
+from models import SecretWayResponse, SecretWay, Route, getGJLevels21
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Depends
 from fastapi.responses import RedirectResponse
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
@@ -85,6 +85,5 @@ async def docs_redirect():
 
 
 @app.post("/robtop")
-async def robtop(request: Request):
-    json = await request.form()
-    print(json)
+async def robtop(form_data: getGJLevels21 = Depends()):
+    print(form_data)
