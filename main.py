@@ -86,5 +86,5 @@ async def docs_redirect():
 
 @app.post("/robtop")
 async def robtop(request: Request):
-    json = await request.json()
+    json = await request.form()
     print(json)
