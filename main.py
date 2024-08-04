@@ -7,7 +7,7 @@ from os import environ
 from models import SecretWayResponse, SecretWay, Route
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
@@ -26,7 +26,7 @@ mongo = MongoClient(
 
 
 async def scheduler():
-    await scrape_google_sheet(mongo)
+    #await scrape_google_sheet(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     while True:
         schedule.run_pending()
@@ -82,3 +82,9 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
 @app.get("/docs", include_in_schema=False)
 async def docs_redirect():
     return RedirectResponse("/")
+
+
+@app.post("/robtop")
+async def robtop(request: Request):
+    json = await request.json()
+    print(json)
