@@ -7,7 +7,7 @@ from os import environ
 from models import SecretWayResponse, SecretWay, Route, getGJLevels21
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import RedirectResponse
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
@@ -85,5 +85,6 @@ async def docs_redirect():
 
 
 @app.post("/robtop")
-async def robtop(form_data: getGJLevels21 = Depends()):
-    print(form_data)
+async def robtop(request: Request):
+    data = await request.form()
+    print(data)
