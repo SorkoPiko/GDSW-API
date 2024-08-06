@@ -68,7 +68,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="2.0.0",
+    version="2.0.1",
     docs_url="/"
 )
 
@@ -174,9 +174,9 @@ async def robtop(request: Request):
 
     if form.completedLevels:
         if form.uncompleted:
-            query.append({'_id': {'$nin': form.uncompletedLevels}})
+            query.append({'_id': {'$nin': form.completedLevels}})
         if form.onlyCompleted:
-            query.append({'_id': {'$in': form.uncompletedLevels}})
+            query.append({'_id': {'$in': form.completedLevels}})
 
     if form.coins:
         query.append({'38': '1'})
