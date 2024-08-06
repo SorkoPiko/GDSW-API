@@ -96,7 +96,7 @@ def robtop_to_level_info(levelString: str) -> tuple[list[dict[str, str]], list[d
 
     hashString = ""
     for level in levels:
-        hashString += f"{level["1"][0]}{level["1"][-1]}{level["18"]}{level["38"]}"
+        hashString += f'{level["1"][0]}{level["1"][-1]}{level["18"]}{level["38"]}'
 
     assert encode_sha1_with_salt(hashString) == body[4]
 
