@@ -4,17 +4,16 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
 
-from models import SecretWayResponse, SecretWay, Route, getGJLevels21
+from models import SecretWayResponse, SecretWay, Route
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import RedirectResponse
 from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
+from fastapi_cache.backends.dynamodb import DynamoBackend
 from fastapi_cache.decorator import cache
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-from redis import asyncio as aioredis
 
 from scrape import scrape_google_sheet
 
@@ -26,7 +25,7 @@ mongo = MongoClient(
 
 
 async def scheduler():
-    #await scrape_google_sheet(mongo)
+    await scrape_google_sheet(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     while True:
         schedule.run_pending()
@@ -35,23 +34,19 @@ async def scheduler():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    redis = aioredis.from_url(
-        f"redis://{environ.get('REDIS_USERNAME')}:{environ.get('REDIS_PASSWORD')}@{environ.get('REDIS_ENDPOINT')}"
-    )
-    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+    FastAPICache.init(DynamoBackend(table_name=environ.get('DYNAMODB_TABLE'), region=environ.get('DYNAMODB_REGION')), prefix="fastapi-cache")
     task = asyncio.create_task(scheduler())
     try:
         yield
     finally:
         task.cancel()
-        await redis.close()
 
 
 app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="1.0.4",
+    version="1.1.0",
     docs_url="/"
 )
 
@@ -86,5 +81,4 @@ async def docs_redirect():
 
 @app.post("/robtop")
 async def robtop(request: Request):
-    data = await request.form()
-    print(data)
+    pass
