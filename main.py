@@ -68,7 +68,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="1.1.2",
+    version="2.0.0",
     docs_url="/"
 )
 
