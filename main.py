@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
 
-from models import SecretWayResponse, SecretWay, Route, getGJLevels21, GJQueryType
+from models import SecretWayResponse, SecretWay, Route, getGJLevels21, GJQueryType, GJDifficulty
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -21,6 +21,15 @@ from scrape import scrape_google_sheet
 from utils import data_to_robtop
 
 allowed_types = [GJQueryType.MOST_LIKED, GJQueryType.MOST_DOWNLOADED, GJQueryType.SEARCH]
+
+diffConverted = {
+    GJDifficulty.AUTO: -10,
+    GJDifficulty.EASY: 10,
+    GJDifficulty.NORMAL: 20,
+    GJDifficulty.HARD: 30,
+    GJDifficulty.HARDER: 40,
+    GJDifficulty.INSANE: 50
+}
 
 load_dotenv()
 mongo = MongoClient(
@@ -90,7 +99,10 @@ async def robtop(request: Request):
     if "type" in form_dict:
         form_dict["type"] = int(form_dict["type"])
     if "diff" in form_dict:
-        form_dict["diff"] = int(form_dict["diff"])
+        if form_dict["diff"] == "-":
+            form_dict["diff"] = 0
+        else:
+            form_dict["diff"] = int(form_dict["diff"])
     if "demonFilter" in form_dict:
         form_dict["demonFilter"] = int(form_dict["demonFilter"])
     if "len" in form_dict:
