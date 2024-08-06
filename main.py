@@ -96,6 +96,9 @@ async def robtop(request: Request):
             form_dict["len"] = 0
         else:
             form_dict["len"] = int(form_dict["len"])
+    if "followed" in form_dict:
+        if form_dict["followed"] == "":
+            form_dict["followed"] = []
     form = getGJLevels21(**form_dict)
     if form.gdw or form.gauntlet:
         return RedirectResponse(
