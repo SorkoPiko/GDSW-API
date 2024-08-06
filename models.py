@@ -85,7 +85,7 @@ class getGJLevels21(BaseModel):
     diff: GJDifficulty | None = None
     demonFilter: GJDemonFilter | None = None
     length: GJLength | None = Field(None, alias="len")
-    uncompeted: bool = False
+    uncompleted: bool = False
     onlyCompleted: bool = False
     completedLevels: list[str] | None = None
     featured: bool = False

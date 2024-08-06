@@ -23,12 +23,19 @@ from utils import data_to_robtop
 allowed_types = [GJQueryType.MOST_LIKED, GJQueryType.MOST_DOWNLOADED, GJQueryType.SEARCH]
 
 diffConverted = {
-    GJDifficulty.AUTO: -10,
     GJDifficulty.EASY: 10,
     GJDifficulty.NORMAL: 20,
     GJDifficulty.HARD: 30,
     GJDifficulty.HARDER: 40,
     GJDifficulty.INSANE: 50
+}
+
+demonDiffConverted = {
+    1: 3,
+    2: 4,
+    3: 0,
+    4: 5,
+    5: 6
 }
 
 load_dotenv()
@@ -93,7 +100,6 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
 async def robtop(request: Request):
     raw_form = await request.form()
     form_dict: dict = {key: value for key, value in raw_form.items()}
-    print(form_dict)
     if "completedLevels" in form_dict:
         form_dict["completedLevels"] = form_dict["completedLevels"][1:-1].split(",")
     if "type" in form_dict:
@@ -127,20 +133,75 @@ async def robtop(request: Request):
     returnString = "-1"
     query = []
 
-    if form.epic + form.legendary + form.mythic == 1:
-        if form.epic:
-            query.append({'42': 1})
-        elif form.legendary:
-            query.append({'42': 2})
-        elif form.mythic:
-            query.append({'42': 3})
+    if form.type == GJQueryType.SEARCH and form.query is None:
+        form.type = GJQueryType.MOST_LIKED
 
     if form.type == GJQueryType.SEARCH:
-        query += {'2': {'$text': {'$search': form.query}}}
+        try:
+            lvlId = int(form.str)
+        except:
+            lvlId = None
+        if lvlId is not None:
+            levels = list(levelCollection.find({'_id': lvlId}))
+
+            return data_to_robtop(mongo, levels, form.page)
+
+    if form.diff:
+        if form.diff == GJDifficulty.DEMON:
+            query.append({'17': '1'})
+            if form.demonFilter:
+                query.append({'43': str(demonDiffConverted[form.demonFilter.value])})
+        elif form.diff == GJDifficulty.AUTO:
+            query.append({'25': '1'})
+        elif form.diff == GJDifficulty.NA:
+            query.append({'8': '0'})
+        else:
+            query.append({'9': str(diffConverted[form.diff.value])})
+
+    if sum([form.epic, form.legendary, form.mythic]) <= 1:
+        if form.epic:
+            query.append({'42': '1'})
+        elif form.legendary:
+            query.append({'42': '2'})
+        elif form.mythic:
+            query.append({'42': '3'})
+        if form.featured:
+            query.append({'19': {'$ne': '0'}})
+
+    if form.original:
+        query.append({'30': 0})
+
+    if form.completedLevels:
+        if form.uncompleted:
+            query.append({'_id': {'$nin': form.uncompletedLevels}})
+        if form.onlyCompleted:
+            query.append({'_id': {'$in': form.uncompletedLevels}})
+
+    if form.coins:
+        query.append({'38': '1'})
+
+    if form.twoPlayer:
+        query.append({'31': '1'})
+
+    if form.noStar:
+        query.append({'18': '0'})
+
+    if form.star:
+        query.append({'18': {'$ne': '0'}})
+
+    if form.song:
+        if form.customSong:
+            query.append({'35': str(form.song)})
+        else:
+            query.append({'12': str(form.song)})
+
+    if form.length:
+        query.append({'15': str(form.length.value)})
+
+    if form.type == GJQueryType.SEARCH:
+        query += {'$text': {'$search': form.query}}
         levels = list(levelCollection.find({
-            '$and': [
-                {'2': {'$text': {'$search': form.query}}}
-            ]
+            '$and': query
         }))
 
         returnString = data_to_robtop(mongo, levels, form.page)
