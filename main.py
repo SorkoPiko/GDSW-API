@@ -213,9 +213,12 @@ async def robtop(request: Request):
 
     elif form.type == GJQueryType.MOST_DOWNLOADED:
         try:
-            levels = list(levelCollection.find({
-                '$and': query
-            }))
+            if not query:
+                levels = list(levelCollection.find())
+            else:
+                levels = list(levelCollection.find({
+                    '$and': query
+                }))
         except:
             print(query)
             return "-1"
@@ -226,9 +229,12 @@ async def robtop(request: Request):
 
     elif form.type == GJQueryType.MOST_LIKED:
         try:
-            levels = list(levelCollection.find({
-                '$and': query
-            }))
+            if not query:
+                levels = list(levelCollection.find())
+            else:
+                levels = list(levelCollection.find({
+                    '$and': query
+                }))
         except:
             print(query)
             return "-1"
