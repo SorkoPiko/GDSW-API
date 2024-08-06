@@ -101,7 +101,10 @@ async def robtop(request: Request):
     raw_form = await request.form()
     form_dict: dict = {key: value for key, value in raw_form.items()}
     if "completedLevels" in form_dict:
-        form_dict["completedLevels"] = form_dict["completedLevels"][1:-1].split(",")
+        try:
+            form_dict["completedLevels"] = [int(x) for x in form_dict["completedLevels"][1:-1].split(",")]
+        except:
+            form_dict["completedLevels"] = []
     if "type" in form_dict:
         form_dict["type"] = int(form_dict["type"])
     if "diff" in form_dict:
@@ -119,8 +122,9 @@ async def robtop(request: Request):
     if "followed" in form_dict:
         if form_dict["followed"] == "":
             form_dict["followed"] = []
+
     form = getGJLevels21(**form_dict)
-    print(form)
+
     if form.gdw or form.gauntlet:
         return RedirectResponse(
             url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(form_dict)}",

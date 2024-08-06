@@ -87,7 +87,7 @@ class getGJLevels21(BaseModel):
     length: GJLength | None = Field(None, alias="len")
     uncompleted: bool = False
     onlyCompleted: bool = False
-    completedLevels: list[str] | None = None
+    completedLevels: list[int] | None = None
     featured: bool = False
     original: bool = False
     twoPlayer: bool = False
