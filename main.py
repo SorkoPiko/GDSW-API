@@ -200,9 +200,13 @@ async def robtop(request: Request):
 
     if form.type == GJQueryType.SEARCH:
         query += {'$text': {'$search': form.query}}
-        levels = list(levelCollection.find({
-            '$and': query
-        }))
+        try:
+            levels = list(levelCollection.find({
+                '$and': query
+            }))
+        except:
+            print(query)
+            return "-1"
 
         returnString = data_to_robtop(mongo, levels, form.page)
 
