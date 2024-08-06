@@ -3,7 +3,6 @@ import schedule
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
-import re
 
 from models import SecretWayResponse, SecretWay, Route, getGJLevels21, GJQueryType
 
@@ -84,7 +83,7 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
 @app.post("/robtop", response_class=HTMLResponse)
 async def robtop(request: Request):
     raw_form = await request.form()
-    form_dict = {key: value for key, value in raw_form.items()}
+    form_dict: dict = {key: value for key, value in raw_form.items()}
     if "completedLevels" in form_dict:
         form_dict["completedLevels"] = form_dict["completedLevels"][1:-1].split(",")
     if "type" in form_dict:
@@ -100,16 +99,32 @@ async def robtop(request: Request):
             status_code=303
         )
 
+    print(form_dict)
+
     if form.type not in allowed_types:
         return "-1"
 
     levelCollection = mongo['robtop']['levels']
+    returnString = "-1"
+    query = []
+
+    if form.epic + form.legendary + form.mythic == 1:
+        if form.epic:
+            query.append({'42': 1})
+        elif form.legendary:
+            query.append({'42': 2})
+        elif form.mythic:
+            query.append({'42': 3})
 
     if form.type == GJQueryType.SEARCH:
-        regex = re.compile(f".*{re.escape(form.query)}.*", re.IGNORECASE)
-        levels = list(levelCollection.find({'2': {'$regex': regex}}))
+        query += {'2': {'$text': {'$search': form.query}}}
+        levels = list(levelCollection.find({
+            '$and': [
+                {'2': {'$text': {'$search': form.query}}}
+            ]
+        }))
 
-    returnString = data_to_robtop(mongo, levels, form.page)
+        returnString = data_to_robtop(mongo, levels, form.page)
 
     return returnString
 
