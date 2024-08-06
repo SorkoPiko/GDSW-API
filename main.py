@@ -120,6 +120,7 @@ async def robtop(request: Request):
         if form_dict["followed"] == "":
             form_dict["followed"] = []
     form = getGJLevels21(**form_dict)
+    print(form)
     if form.gdw or form.gauntlet:
         return RedirectResponse(
             url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(form_dict)}",
