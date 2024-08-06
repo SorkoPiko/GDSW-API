@@ -177,11 +177,11 @@ def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int)
     creatorList = []
     songList = []
     for level in levels:
-        level["1"] = level.pop("_id")
+        level = {'1': level.pop('_id'), **level}
         if "6" in level:
-            creatorList.append(level["6"])
+            creatorList.append(int(level["6"]))
         if "35" in level:
-            songList.append(level["35"])
+            songList.append(int(level["35"]))
 
     creators = list(creatorCollection.find({'_id': {'$in': creatorList}}))
     for creator in creators:
