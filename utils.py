@@ -177,7 +177,7 @@ def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int)
     creatorList = []
     songList = []
     for level in levels:
-        level = {'1': level.pop('_id'), **level}
+        level["1"] = str(level.pop("_id"))
         if "6" in level:
             creatorList.append(int(level["6"]))
         if "35" in level:
@@ -197,6 +197,6 @@ def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int)
 
     hashString = ""
     for level in levels:
-        hashString += f'{level["1"]}{level["18"]}{level["38"]}'
+        hashString += f'{level["1"][0]}{level["1"][-1]}{level["18"]}{level["38"]}'
 
     return f"{levelString}#{creatorString}#{songString}#{':'.join(pageInfo)}#{encode_sha1_with_salt(hashString)}"
