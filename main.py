@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
 
-from models import SecretWayResponse, SecretWay, Route, getGJLevels21, GJQueryType, GJDifficulty
+from models import SecretWayResponse, SecretWay, Route, getGJLevels21, GJQueryType, GJDifficulty, GJDemonFilter
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -31,11 +31,11 @@ diffConverted = {
 }
 
 demonDiffConverted = {
-    1: 3,
-    2: 4,
-    3: 0,
-    4: 5,
-    5: 6
+    GJDemonFilter.EASY: 3,
+    GJDemonFilter.MEDIUM: 4,
+    GJDemonFilter.HARD: 0,
+    GJDemonFilter.INSANE: 5,
+    GJDemonFilter.EXTREME: 6
 }
 
 load_dotenv()
@@ -150,13 +150,13 @@ async def robtop(request: Request):
         if form.diff == GJDifficulty.DEMON:
             query.append({'17': '1'})
             if form.demonFilter:
-                query.append({'43': str(demonDiffConverted[form.demonFilter.value])})
+                query.append({'43': str(demonDiffConverted[form.demonFilter])})
         elif form.diff == GJDifficulty.AUTO:
             query.append({'25': '1'})
         elif form.diff == GJDifficulty.NA:
             query.append({'8': '0'})
         else:
-            query.append({'9': str(diffConverted[form.diff.value])})
+            query.append({'9': str(diffConverted[form.diff])})
 
     if sum([form.epic, form.legendary, form.mythic]) <= 1:
         if form.epic:
