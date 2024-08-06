@@ -169,8 +169,8 @@ def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int)
 
     pageInfo = [len(levels), page*10, 10]
 
-    del levels[pageInfo[1]:]
-    del levels[:pageInfo[2]]
+    del levels[:pageInfo[1]]
+    del levels[pageInfo[2]:]
 
     pageInfo = [str(i) for i in pageInfo]
 

@@ -208,6 +208,7 @@ async def robtop(request: Request):
             print(query)
             return "-1"
 
+        print(levels)
         returnString = data_to_robtop(mongo, levels, form.page)
 
     return returnString
