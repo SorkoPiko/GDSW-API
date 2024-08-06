@@ -199,7 +199,7 @@ async def robtop(request: Request):
         query.append({'15': str(form.length.value)})
 
     if form.type == GJQueryType.SEARCH:
-        query += {'$text': {'$search': form.query}}
+        query.append({'$text': {'$search': form.query}})
         try:
             levels = list(levelCollection.find({
                 '$and': query
