@@ -84,6 +84,7 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
 async def robtop(request: Request):
     raw_form = await request.form()
     form_dict: dict = {key: value for key, value in raw_form.items()}
+    print(form_dict)
     if "completedLevels" in form_dict:
         form_dict["completedLevels"] = form_dict["completedLevels"][1:-1].split(",")
     if "type" in form_dict:
@@ -91,15 +92,16 @@ async def robtop(request: Request):
     if "diff" in form_dict:
         form_dict["diff"] = int(form_dict["diff"])
     if "len" in form_dict:
-        form_dict["len"] = int(form_dict["len"])
+        if form_dict["len"] == "-":
+            form_dict["len"] = 0
+        else:
+            form_dict["len"] = int(form_dict["len"])
     form = getGJLevels21(**form_dict)
     if form.gdw or form.gauntlet:
         return RedirectResponse(
             url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(form_dict)}",
             status_code=303
         )
-
-    print(form_dict)
 
     if form.type not in allowed_types:
         return "-1"
