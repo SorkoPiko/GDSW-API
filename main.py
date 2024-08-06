@@ -107,7 +107,7 @@ async def robtop(request: Request):
         form_dict["demonFilter"] = int(form_dict["demonFilter"])
     if "len" in form_dict:
         if form_dict["len"] == "-":
-            form_dict["len"] = 0
+            form_dict["len"] = None
         else:
             form_dict["len"] = int(form_dict["len"])
     if "followed" in form_dict:
