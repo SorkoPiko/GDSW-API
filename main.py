@@ -91,6 +91,8 @@ async def robtop(request: Request):
         form_dict["type"] = int(form_dict["type"])
     if "diff" in form_dict:
         form_dict["diff"] = int(form_dict["diff"])
+    if "demonFilter" in form_dict:
+        form_dict["demonFilter"] = int(form_dict["demonFilter"])
     if "len" in form_dict:
         if form_dict["len"] == "-":
             form_dict["len"] = 0
