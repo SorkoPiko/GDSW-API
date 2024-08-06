@@ -130,6 +130,7 @@ async def robtop(request: Request):
         return "-1"
 
     levelCollection = mongo['robtop']['levels']
+
     returnString = "-1"
     query = []
 
@@ -207,6 +208,33 @@ async def robtop(request: Request):
         except:
             print(query)
             return "-1"
+
+        returnString = data_to_robtop(mongo, levels, form.page)
+
+    elif form.type == GJQueryType.MOST_DOWNLOADED:
+        try:
+            levels = list(levelCollection.find({
+                '$and': query
+            }))
+        except:
+            print(query)
+            return "-1"
+
+        levels = sorted(levels, key=lambda x: int(x['10']), reverse=True)
+
+        returnString = data_to_robtop(mongo, levels, form.page)
+
+    elif form.type == GJQueryType.MOST_LIKED:
+        try:
+            levels = list(levelCollection.find({
+                '$and': query
+            }))
+        except:
+            print(query)
+            return "-1"
+
+        levels = sorted(levels, key=lambda x: int(x['14']), reverse=True)
+
         returnString = data_to_robtop(mongo, levels, form.page)
 
     return returnString
