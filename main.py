@@ -3,19 +3,25 @@ import schedule
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
+import re
 
-from models import SecretWayResponse, SecretWay, Route
+from models import SecretWayResponse, SecretWay, Route, getGJLevels21, GJQueryType
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.dynamodb import DynamoBackend
 from fastapi_cache.decorator import cache
+from fastapi.responses import HTMLResponse
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from urllib.parse import urlencode
 
 from scrape import scrape_google_sheet
+from utils import data_to_robtop
+
+allowed_types = [GJQueryType.MOST_LIKED, GJQueryType.MOST_DOWNLOADED, GJQueryType.SEARCH]
 
 load_dotenv()
 mongo = MongoClient(
@@ -25,7 +31,7 @@ mongo = MongoClient(
 
 
 async def scheduler():
-    await scrape_google_sheet(mongo)
+    #await scrape_google_sheet(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     while True:
         schedule.run_pending()
@@ -34,7 +40,8 @@ async def scheduler():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    FastAPICache.init(DynamoBackend(table_name=environ.get('DYNAMODB_TABLE'), region=environ.get('DYNAMODB_REGION')), prefix="fastapi-cache")
+    FastAPICache.init(DynamoBackend(table_name=environ.get('DYNAMODB_TABLE'), region=environ.get('DYNAMODB_REGION')),
+                      prefix="fastapi-cache")
     task = asyncio.create_task(scheduler())
     try:
         yield
@@ -46,7 +53,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="1.1.1",
+    version="1.1.2",
     docs_url="/"
 )
 
@@ -60,7 +67,7 @@ async def get_cache():
 @cache(expire=3600)
 async def get_secretway(level_id: int) -> SecretWayResponse:
     collection = mongo['secretways']['levels']
-    data = collection.find_one({'_id': level_id})
+    data: dict = collection.find_one({'_id': level_id})
     if data is None:
         return SecretWayResponse()
     data.pop("_id")
@@ -74,11 +81,39 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
     return SecretWayResponse(found=True, data=SecretWay(**data))
 
 
+@app.post("/robtop", response_class=HTMLResponse)
+async def robtop(request: Request):
+    raw_form = await request.form()
+    form_dict = {key: value for key, value in raw_form.items()}
+    if "completedLevels" in form_dict:
+        form_dict["completedLevels"] = form_dict["completedLevels"][1:-1].split(",")
+    if "type" in form_dict:
+        form_dict["type"] = int(form_dict["type"])
+    if "diff" in form_dict:
+        form_dict["diff"] = int(form_dict["diff"])
+    if "len" in form_dict:
+        form_dict["len"] = int(form_dict["len"])
+    form = getGJLevels21(**form_dict)
+    if form.gdw or form.gauntlet:
+        return RedirectResponse(
+            url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(form_dict)}",
+            status_code=303
+        )
+
+    if form.type not in allowed_types:
+        return "-1"
+
+    levelCollection = mongo['robtop']['levels']
+
+    if form.type == GJQueryType.SEARCH:
+        regex = re.compile(f".*{re.escape(form.query)}.*", re.IGNORECASE)
+        levels = list(levelCollection.find({'2': {'$regex': regex}}))
+
+    returnString = data_to_robtop(mongo, levels, form.page)
+
+    return returnString
+
+
 @app.get("/docs", include_in_schema=False)
 async def docs_redirect():
     return RedirectResponse("/")
-
-
-@app.post("/robtop")
-async def robtop(request: Request):
-    pass

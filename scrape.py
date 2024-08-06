@@ -96,7 +96,7 @@ async def scrape_robtop_api(client: MongoClient):
         data["completedLevels"] = f"({','.join(allIds[:10])})",
         del allIds[:10]
         req = requests.post(url=url, data=data, headers=headers)
-        reqParsed = utils.robtop_to_level_info(req.text)
+        reqParsed = utils.robtop_to_data(req.text)
 
         if len(reqParsed[0]) == 0: #shouldn't be necessary but just in case
             break
