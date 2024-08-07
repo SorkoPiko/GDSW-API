@@ -6,9 +6,8 @@ This is a simple API that allows you to find the secret way of any given level i
 ```.dotenv
 SPREADSHEET_ID=10yobC-Hpi-ODNTJFwdyfdynghtXi3JqazMqzMmj59M0
 
-REDIS_USERNAME=
-REDIS_PASSWORD=
-REDIS_ENDPOINT=
+DYNAMODB_TABLE=
+DYNAMODB_REGION=
 
 MONGO_USERNAME=
 MONGO_PASSWORD=
