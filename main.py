@@ -20,7 +20,12 @@ from urllib.parse import urlencode
 from scrape import scrape_google_sheet
 from utils import data_to_robtop
 
-allowed_types = [GJQueryType.MOST_LIKED, GJQueryType.MOST_DOWNLOADED, GJQueryType.SEARCH]
+allowed_types = [
+    GJQueryType.MOST_LIKED,
+    GJQueryType.MOST_DOWNLOADED,
+    GJQueryType.SEARCH,
+    GJQueryType.FEATURED
+]
 
 diffConverted = {
     GJDifficulty.EASY: 10,
@@ -136,11 +141,13 @@ async def robtop(request: Request):
 
     levelCollection = mongo['robtop']['levels']
 
-    returnString = "-1"
     query = []
 
     if form.type == GJQueryType.SEARCH and form.query is None:
         form.type = GJQueryType.MOST_LIKED
+
+    if form.type == GJQueryType.FEATURED:
+        query.append({'19': {'$ne': '0'}})
 
     if form.type == GJQueryType.SEARCH:
         try:
@@ -148,9 +155,11 @@ async def robtop(request: Request):
         except:
             lvlId = None
         if lvlId is not None:
-            cursor = list(levelCollection.find({'_id': lvlId}))
-
-            return data_to_robtop(mongo, cursor, form.page)
+            cursor = levelCollection.find({'_id': lvlId})
+            levels = list(cursor)
+            if not levels:
+                return "-1"
+            return data_to_robtop(mongo, levels, form.page, 1)
 
     if form.diff:
         if form.diff == GJDifficulty.DEMON:
@@ -171,7 +180,7 @@ async def robtop(request: Request):
             query.append({'42': '2'})
         elif form.mythic:
             query.append({'42': '3'})
-        if form.featured:
+        if form.featured and form.type != GJQueryType.FEATURED:
             query.append({'19': {'$ne': '0'}})
 
     if form.original:
@@ -213,14 +222,14 @@ async def robtop(request: Request):
             length = levelCollection.count_documents({
                 '$and': query
             })
-            levels = list(cursor[form.page*10:form.page*10+10])
+            levels = list(cursor[form.page * 10:form.page * 10 + 10])
         except:
             print(query)
             return "-1"
 
         returnString = data_to_robtop(mongo, levels, form.page, length)
 
-    elif form.type == GJQueryType.MOST_DOWNLOADED:
+    else:
         try:
             if not query:
                 cursor = levelCollection.find()
@@ -232,30 +241,19 @@ async def robtop(request: Request):
                 length = levelCollection.count_documents({
                     '$and': query
                 })
+        except:
+            print(query)
+            return "-1"
+        if form.type == GJQueryType.MOST_DOWNLOADED:
             cursor.sort({'10': -1})
-            levels = list(cursor[form.page*10:form.page*10+10])
-        except:
-            print(query)
-            return "-1"
-
-        returnString = data_to_robtop(mongo, levels, form.page, length)
-
-    elif form.type == GJQueryType.MOST_LIKED:
-        try:
-            if not query:
-                cursor = levelCollection.find()
-                length = levelCollection.estimated_document_count()
-            else:
-                cursor = levelCollection.find({
-                    '$and': query
-                })
-                length = levelCollection.count_documents({
-                    '$and': query
-                })
+            levels = list(cursor[form.page * 10:form.page * 10 + 10])
+        elif form.type == GJQueryType.MOST_LIKED:
             cursor.sort({'14': -1})
-            levels = list(cursor[form.page*10:form.page*10+10])
-        except:
-            print(query)
+            levels = list(cursor[form.page * 10:form.page * 10 + 10])
+        elif form.type == GJQueryType.FEATURED:
+            cursor.sort({'19': -1})
+            levels = list(cursor[form.page * 10:form.page * 10 + 10])
+        else:
             return "-1"
 
         returnString = data_to_robtop(mongo, levels, form.page, length)
