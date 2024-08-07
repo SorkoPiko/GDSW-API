@@ -1,9 +1,7 @@
-import types
 import hashlib
 from pymongo.mongo_client import MongoClient
 
 from pytube import extract
-from typing import get_args, get_origin
 
 
 def parse_data(data):
@@ -62,12 +60,6 @@ def generate_cell_link(spreadsheet_id, sheet_id, row):
     return f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit#gid={sheet_id}&range=A{row}:F{row}"
 
 
-def convert_string(value: str, target_type: callable):
-    if value == "":
-        return None
-    return target_type(value)
-
-
 def encode_sha1_with_salt(data: str) -> str:
     salt = b'xI25fpAapCQg'
 
@@ -79,12 +71,6 @@ def encode_sha1_with_salt(data: str) -> str:
     hash_digest = sha1.hexdigest()
 
     return hash_digest
-
-
-def get_first_type(type):
-    if get_origin(type) is types.UnionType:
-        return get_args(type)[0]
-    return type
 
 
 def robtop_to_data(levelString: str) -> tuple[list[dict[str, str]], list[dict[str, [str, int]]], list[dict[str, str]], list[str]]:

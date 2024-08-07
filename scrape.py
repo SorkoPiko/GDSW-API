@@ -72,8 +72,6 @@ async def scrape_google_sheet(client: MongoClient):
 
     collection.delete_many({'_id': {'$nin': list(updated_ids)}})
 
-    await scrape_robtop_api(client)
-
 
 def get_all_ids(client: MongoClient) -> list[str]:
     collection = client['secretways']['levels']

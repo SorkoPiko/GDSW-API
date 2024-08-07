@@ -17,7 +17,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from urllib.parse import urlencode
 
-from scrape import scrape_google_sheet
+from scrape import scrape_google_sheet, scrape_robtop_api
 from utils import data_to_robtop
 
 allowed_types = [
@@ -50,8 +50,9 @@ mongo = MongoClient(
 
 
 async def scheduler():
-    #await scrape_google_sheet(mongo)
+    await scrape_google_sheet(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
+    schedule.every().hour.do(lambda: asyncio.create_task(scrape_robtop_api(mongo)))
     while True:
         schedule.run_pending()
         await asyncio.sleep(1)
