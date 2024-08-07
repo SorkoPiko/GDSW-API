@@ -102,6 +102,7 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
 
 
 @app.post("/robtop", response_class=HTMLResponse)
+@cache(expire=3600)
 async def robtop(request: Request):
     raw_form = await request.form()
     form_dict: dict = {key: value for key, value in raw_form.items()}
