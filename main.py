@@ -130,7 +130,7 @@ async def robtop(request: Request):
 
     form = getGJLevels21(**form_dict)
 
-    if form.gdw or form.gauntlet:
+    if form.gdw or form.gauntlet or form.type == GJQueryType.USER or form.type == GJQueryType.LIST:
         return RedirectResponse(
             url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(form_dict)}",
             status_code=303
@@ -209,7 +209,8 @@ async def robtop(request: Request):
         if form.customSong:
             query.append({'35': str(form.song)})
         else:
-            query.append({'12': str(form.song)})
+            query.append({'12': str(form.song-1)})
+            query.append({'35': '0'})
 
     if form.length:
         query.append({'15': str(form.length.value)})
