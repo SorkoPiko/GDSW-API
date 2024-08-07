@@ -262,7 +262,7 @@ async def robtop(request: Request):
         "secret": form.secret,
         "type": GJQueryType.LEVEL_LIST,
         "page": form.page,
-        "str": f"({','.join([str(x) for x in id_list])})",
+        "str": ','.join([str(x) for x in id_list]),
     }
 
     return RedirectResponse(
