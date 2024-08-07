@@ -51,7 +51,7 @@ mongo = MongoClient(
 
 
 async def scheduler():
-    await scrape_google_sheet(mongo)
+    #await scrape_google_sheet(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     while True:
         schedule.run_pending()
@@ -130,7 +130,7 @@ async def robtop(request: Request):
 
     form = getGJLevels21(**form_dict)
 
-    if form.gdw or form.gauntlet or form.type == GJQueryType.USER or form.type == GJQueryType.LIST:
+    if form.gdw or form.gauntlet or form.type == GJQueryType.USER or form.type == GJQueryType.LIST or form.type == GJQueryType.DAILY or form.type == GJQueryType.WEEKLY:
         return RedirectResponse(
             url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(form_dict)}",
             status_code=303
