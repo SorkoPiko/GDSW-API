@@ -23,8 +23,7 @@ from utils import data_to_robtop
 allowed_types = [
     GJQueryType.MOST_LIKED,
     GJQueryType.MOST_DOWNLOADED,
-    GJQueryType.SEARCH,
-    GJQueryType.FEATURED
+    GJQueryType.SEARCH
 ]
 
 diffConverted = {
@@ -73,7 +72,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="2.0.2",
+    version="2.0.3",
     docs_url="/"
 )
 
@@ -130,11 +129,22 @@ async def robtop(request: Request):
 
     form = getGJLevels21(**form_dict)
 
-    if form.gdw or form.gauntlet or form.type == GJQueryType.USER or form.type == GJQueryType.LIST or form.type == GJQueryType.DAILY or form.type == GJQueryType.WEEKLY:
+    if form.gdw or form.gauntlet or form.type == GJQueryType.USER or form.type == GJQueryType.LIST or form.type == GJQueryType.DAILY or form.type == GJQueryType.WEEKLY or form.type == GJQueryType.FEATURED:
         return RedirectResponse(
             url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(form_dict)}",
             status_code=303
         )
+
+    if form.type == GJQueryType.SEARCH:
+        try:
+            lvlId = int(form.str)
+        except:
+            lvlId = None
+        if lvlId is not None:
+            return RedirectResponse(
+                url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(form_dict)}",
+                status_code=303
+            )
 
     if form.type not in allowed_types:
         return "-1"
@@ -149,17 +159,7 @@ async def robtop(request: Request):
     if form.type == GJQueryType.FEATURED:
         query.append({'19': {'$ne': '0'}})
 
-    if form.type == GJQueryType.SEARCH:
-        try:
-            lvlId = int(form.str)
-        except:
-            lvlId = None
-        if lvlId is not None:
-            cursor = levelCollection.find({'_id': lvlId})
-            levels = list(cursor)
-            if not levels:
-                return "-1"
-            return data_to_robtop(mongo, levels, form.page, 1)
+
 
     if form.diff:
         if form.diff == GJDifficulty.DEMON:
@@ -251,9 +251,6 @@ async def robtop(request: Request):
             levels = list(cursor[form.page * 10:form.page * 10 + 10])
         elif form.type == GJQueryType.MOST_LIKED:
             cursor.sort({'14': -1})
-            levels = list(cursor[form.page * 10:form.page * 10 + 10])
-        elif form.type == GJQueryType.FEATURED:
-            cursor.sort({'19': -1})
             levels = list(cursor[form.page * 10:form.page * 10 + 10])
         else:
             return "-1"
