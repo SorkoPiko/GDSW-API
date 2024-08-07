@@ -51,7 +51,7 @@ mongo = MongoClient(
 
 
 async def scheduler():
-    #await scrape_google_sheet(mongo)
+    await scrape_google_sheet(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     while True:
         schedule.run_pending()
@@ -73,7 +73,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="2.0.1",
+    version="2.0.2",
     docs_url="/"
 )
 
@@ -172,6 +172,7 @@ async def robtop(request: Request):
             query.append({'8': '0'})
         else:
             query.append({'9': str(diffConverted[form.diff])})
+            query.append({'17': '0'})
 
     if sum([form.epic, form.legendary, form.mythic]) <= 1:
         if form.epic:

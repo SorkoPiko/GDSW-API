@@ -97,6 +97,12 @@ def robtop_to_data(levelString: str) -> tuple[list[dict[str, str]], list[dict[st
 
     hashString = ""
     for level in levels:
+        if "10" in level:
+            level["10"] = int(level["10"])
+        if "14" in level:
+            level["14"] = int(level["14"])
+        if "19" in level:
+            level["19"] = int(level["19"])
         hashString += f'{level["1"][0]}{level["1"][-1]}{level["18"]}{level["38"]}'
 
     assert encode_sha1_with_salt(hashString) == body[4]
@@ -150,29 +156,18 @@ def parse_songs(songs: list[str]) -> list[dict[str, str]]:
     return returnSongs
 
 
-def compress_levels(levels: list[dict[str, str]]) -> str:
-    return "|".join([":".join([f"{key}:{value}" for key, value in level.items()]) for level in levels])
-
-
-def compress_creators(creators: list[dict[str, [str, int]]]) -> str:
-    return "|".join([f"{creator['userID']}:{creator['username']}:{creator['accountID']}" for creator in creators])
-
-
-def compress_songs(songs: list[dict[str, str]]) -> str:
-    return "~:~".join(["~|~".join([f"{key}~|~{value}" for key, value in song.items()]) for song in songs])
-
-
 def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int, length: int):
     db = client['robtop']
     creatorCollection = db['creators']
     songCollection = db['songs']
 
-    pageInfo = [str(i) for i in [length, page*10, 10]]
+    pageInfo = [str(i) for i in [length, page * 10, 10]]
 
     creatorList = []
     songList = []
     for level in levels:
         level["1"] = str(level.pop("_id"))
+
         if "6" in level:
             creatorList.append(int(level["6"]))
         if "35" in level:
@@ -195,3 +190,15 @@ def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int,
         hashString += f'{level["1"][0]}{level["1"][-1]}{level["18"]}{level["38"]}'
 
     return f"{levelString}#{creatorString}#{songString}#{':'.join(pageInfo)}#{encode_sha1_with_salt(hashString)}"
+
+
+def compress_levels(levels: list[dict[str, str]]) -> str:
+    return "|".join([":".join([f"{key}:{value}" for key, value in level.items()]) for level in levels])
+
+
+def compress_creators(creators: list[dict[str, [str, int]]]) -> str:
+    return "|".join([f"{creator['userID']}:{creator['username']}:{creator['accountID']}" for creator in creators])
+
+
+def compress_songs(songs: list[dict[str, str]]) -> str:
+    return "~:~".join(["~|~".join([f"{key}~|~{value}" for key, value in song.items()]) for song in songs])
