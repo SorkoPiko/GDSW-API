@@ -72,7 +72,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="2.1.0",
+    version="2.0.3",
     docs_url="/"
 )
 
@@ -219,56 +219,43 @@ async def robtop(request: Request):
             cursor = levelCollection.find({
                 '$and': query
             })
-            #length = levelCollection.count_documents({
-            #    '$and': query
-            #})
-            #levels = list(cursor[form.page * 10:form.page * 10 + 10])
+            length = levelCollection.count_documents({
+                '$and': query
+            })
+            levels = list(cursor[form.page * 10:form.page * 10 + 10])
         except:
             print(query)
             return "-1"
 
-        id_list = [doc['_id'] for doc in cursor]
-        #returnString = data_to_robtop(mongo, levels, form.page, length)
+        returnString = data_to_robtop(mongo, levels, form.page, length)
 
     else:
         try:
             if not query:
                 cursor = levelCollection.find()
-                #length = levelCollection.estimated_document_count()
+                length = levelCollection.estimated_document_count()
             else:
                 cursor = levelCollection.find({
                     '$and': query
                 })
-                #length = levelCollection.count_documents({
-                #    '$and': query
-                #})
+                length = levelCollection.count_documents({
+                    '$and': query
+                })
         except:
             print(query)
             return "-1"
         if form.type == GJQueryType.MOST_DOWNLOADED:
             cursor.sort({'10': -1})
-            #levels = list(cursor[form.page * 10:form.page * 10 + 10])
+            levels = list(cursor[form.page * 10:form.page * 10 + 10])
         elif form.type == GJQueryType.MOST_LIKED:
             cursor.sort({'14': -1})
-            #levels = list(cursor[form.page * 10:form.page * 10 + 10])
+            levels = list(cursor[form.page * 10:form.page * 10 + 10])
         else:
             return "-1"
 
-        id_list = [doc['_id'] for doc in cursor]
+        returnString = data_to_robtop(mongo, levels, form.page, length)
 
-        #returnString = data_to_robtop(mongo, levels, form.page, length)
-
-    new_data = {
-        "secret": form.secret,
-        "type": GJQueryType.LEVEL_LIST,
-        "page": form.page,
-        "str": ','.join([str(x) for x in id_list]),
-    }
-
-    return RedirectResponse(
-        url=f"https://www.boomlings.com/database/getGJLevels21.php?{urlencode(new_data)}",
-        status_code=303
-    )
+    return returnString
 
 
 @app.get("/docs", include_in_schema=False)
