@@ -148,9 +148,9 @@ async def robtop(request: Request):
         except:
             lvlId = None
         if lvlId is not None:
-            levels = list(levelCollection.find({'_id': lvlId}))
+            cursor = list(levelCollection.find({'_id': lvlId}))
 
-            return data_to_robtop(mongo, levels, form.page)
+            return data_to_robtop(mongo, cursor, form.page)
 
     if form.diff:
         if form.diff == GJDifficulty.DEMON:
@@ -207,46 +207,58 @@ async def robtop(request: Request):
     if form.type == GJQueryType.SEARCH:
         query.append({'$text': {'$search': form.query}})
         try:
-            levels = list(levelCollection.find({
+            cursor = levelCollection.find({
                 '$and': query
-            }))
+            })
+            length = levelCollection.count_documents({
+                '$and': query
+            })
+            levels = list(cursor[form.page*10:form.page*10+10])
         except:
             print(query)
             return "-1"
 
-        returnString = data_to_robtop(mongo, levels, form.page)
+        returnString = data_to_robtop(mongo, levels, form.page, length)
 
     elif form.type == GJQueryType.MOST_DOWNLOADED:
         try:
             if not query:
-                levels = list(levelCollection.find())
+                cursor = levelCollection.find()
+                length = levelCollection.estimated_document_count()
             else:
-                levels = list(levelCollection.find({
+                cursor = levelCollection.find({
                     '$and': query
-                }))
+                })
+                length = levelCollection.count_documents({
+                    '$and': query
+                })
+            cursor.sort({'10': -1})
+            levels = list(cursor[form.page*10:form.page*10+10])
         except:
             print(query)
             return "-1"
 
-        levels = sorted(levels, key=lambda x: int(x['10']), reverse=True)
-
-        returnString = data_to_robtop(mongo, levels, form.page)
+        returnString = data_to_robtop(mongo, levels, form.page, length)
 
     elif form.type == GJQueryType.MOST_LIKED:
         try:
             if not query:
-                levels = list(levelCollection.find())
+                cursor = levelCollection.find()
+                length = levelCollection.estimated_document_count()
             else:
-                levels = list(levelCollection.find({
+                cursor = levelCollection.find({
                     '$and': query
-                }))
+                })
+                length = levelCollection.count_documents({
+                    '$and': query
+                })
+            cursor.sort({'14': -1})
+            levels = list(cursor[form.page*10:form.page*10+10])
         except:
             print(query)
             return "-1"
 
-        levels = sorted(levels, key=lambda x: int(x['14']), reverse=True)
-
-        returnString = data_to_robtop(mongo, levels, form.page)
+        returnString = data_to_robtop(mongo, levels, form.page, length)
 
     return returnString
 

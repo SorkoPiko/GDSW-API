@@ -162,17 +162,12 @@ def compress_songs(songs: list[dict[str, str]]) -> str:
     return "~:~".join(["~|~".join([f"{key}~|~{value}" for key, value in song.items()]) for song in songs])
 
 
-def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int):
+def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int, length: int):
     db = client['robtop']
     creatorCollection = db['creators']
     songCollection = db['songs']
 
-    pageInfo = [len(levels), page*10, 10]
-
-    del levels[:pageInfo[1]]
-    del levels[pageInfo[2]:]
-
-    pageInfo = [str(i) for i in pageInfo]
+    pageInfo = [str(i) for i in [length, page*10, 10]]
 
     creatorList = []
     songList = []
