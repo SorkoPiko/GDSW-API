@@ -123,10 +123,10 @@ async def robtop(request: Request):
     if "len" in form_dict:
         if form_dict["len"] == "-":
             form_dict["len"] = None
+        elif form_dict["len"] == "":
+            form_dict["len"] = []
         else:
             form_dict["len"] = [GJLength(int(x)) for x in form_dict["len"].split(",")]
-    else:
-        form_dict["len"] = []
     if "followed" in form_dict:
         if form_dict["followed"] == "":
             form_dict["followed"] = []
