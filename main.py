@@ -73,7 +73,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="2.0.5",
+    version="2.0.6",
     docs_url="/"
 )
 
@@ -125,6 +125,8 @@ async def robtop(request: Request):
             form_dict["len"] = None
         else:
             form_dict["len"] = [GJLength(int(x)) for x in form_dict["len"].split(",")]
+    else:
+        form_dict["len"] = []
     if "followed" in form_dict:
         if form_dict["followed"] == "":
             form_dict["followed"] = []
