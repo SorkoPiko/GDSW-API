@@ -121,10 +121,7 @@ async def robtop(request: Request):
     if "demonFilter" in form_dict:
         form_dict["demonFilter"] = int(form_dict["demonFilter"])
     if "len" in form_dict:
-        print(form_dict["len"])
         if form_dict["len"] == "-":
-            form_dict["len"] = None
-        elif form_dict["len"] == "":
             form_dict["len"] = []
         else:
             form_dict["len"] = [GJLength(int(x)) for x in form_dict["len"].split(",")]
