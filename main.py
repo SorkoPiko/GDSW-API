@@ -50,7 +50,7 @@ mongo = MongoClient(
 
 
 async def scheduler():
-    await scrape_google_sheet(mongo)
+    #await scrape_google_sheet(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     schedule.every().hour.do(lambda: asyncio.create_task(scrape_robtop_api(mongo)))
     while True:
@@ -73,7 +73,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="Geometry Dash Secret Ways API",
     description="An API to find secret ways in Geometry Dash levels",
-    version="2.0.4",
+    version="2.0.5",
     docs_url="/"
 )
 
@@ -169,10 +169,10 @@ async def robtop(request: Request):
         elif form.diff == GJDifficulty.AUTO:
             query.append({'25': '1'})
         elif form.diff == GJDifficulty.NA:
-            query.append({'8': '0'})
+            query.append({'$or': [{'8': ''}, {'8': 0}]})
         else:
             query.append({'9': str(diffConverted[form.diff])})
-            query.append({'17': '0'})
+            query.append({'$or': [{'17': ''}, {'17': 0}]})
 
     if sum([form.epic, form.legendary, form.mythic]) <= 1:
         if form.epic:
@@ -200,7 +200,7 @@ async def robtop(request: Request):
         query.append({'31': '1'})
 
     if form.noStar:
-        query.append({'18': '0'})
+        query.append({'$or': [{'18': ''}, {'18': 0}]})
 
     if form.star:
         query.append({'18': {'$ne': '0'}})
@@ -210,10 +210,12 @@ async def robtop(request: Request):
             query.append({'35': str(form.song)})
         else:
             query.append({'12': str(form.song - 1)})
-            query.append({'35': '0'})
+            query.append({'$or': [{'35': ''}, {'35': 0}]})
 
     if form.length:
         query.append({'15': str(form.length.value)})
+
+    print(query)
 
     if form.type == GJQueryType.SEARCH:
         query.append({'$text': {'$search': form.query}})
