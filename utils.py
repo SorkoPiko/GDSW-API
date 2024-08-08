@@ -143,6 +143,9 @@ def parse_songs(songs: list[str]) -> list[dict[str, str]]:
 
 
 def data_to_robtop(client: MongoClient, levels: list[dict[str, str]], page: int, length: int):
+    if not levels:
+        return "-1"
+
     db = client['robtop']
     creatorCollection = db['creators']
     songCollection = db['songs']

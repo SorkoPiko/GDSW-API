@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from os import environ
 
-from models import SecretWayResponse, SecretWay, Route, getGJLevels21, GJQueryType, GJDifficulty, GJDemonFilter
+from models import SecretWayResponse, SecretWay, Route, getGJLevels21, GJQueryType, GJDifficulty, GJDemonFilter, GJLength
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -124,7 +124,7 @@ async def robtop(request: Request):
         if form_dict["len"] == "-":
             form_dict["len"] = None
         else:
-            form_dict["len"] = int(form_dict["len"])
+            form_dict["len"] = [GJLength(int(x)) for x in form_dict["len"].split(",")]
     if "followed" in form_dict:
         if form_dict["followed"] == "":
             form_dict["followed"] = []
@@ -213,9 +213,7 @@ async def robtop(request: Request):
             query.append({'$or': [{'35': ''}, {'35': 0}]})
 
     if form.length:
-        query.append({'15': str(form.length.value)})
-
-    print(query)
+        query.append({'15': {'$in': [str(x.value) for x in form.length]}})
 
     if form.type == GJQueryType.SEARCH:
         query.append({'$text': {'$search': form.query}})

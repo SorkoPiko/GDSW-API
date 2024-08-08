@@ -84,7 +84,7 @@ class getGJLevels21(BaseModel):
     gauntlet: int | None = None
     diff: GJDifficulty | None = None
     demonFilter: GJDemonFilter | None = None
-    length: GJLength | None = Field(None, alias="len")
+    length: list[GJLength] = Field([], alias="len")
     uncompleted: bool = False
     onlyCompleted: bool = False
     completedLevels: list[int] | None = None
