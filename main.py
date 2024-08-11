@@ -101,6 +101,14 @@ async def get_secretway(level_id: int) -> SecretWayResponse:
     return SecretWayResponse(found=True, data=SecretWay(**data))
 
 
+@app.get("/auto")
+@cache(expire=3600)
+async def get_autolevels():
+    collection = mongo['secretways']['auto']
+    data = [x["_id"] for x in list(collection.find())]
+    return data
+
+
 @app.post("/robtop", response_class=HTMLResponse)
 @cache(expire=3600)
 async def robtop(request: Request):
