@@ -51,6 +51,7 @@ mongo = MongoClient(
 
 async def scheduler():
     #await scrape_google_sheet(mongo)
+    await scrape_robtop_api(mongo)
     schedule.every().day.at("00:00").do(lambda: asyncio.create_task(scrape_google_sheet(mongo)))
     schedule.every().hour.do(lambda: asyncio.create_task(scrape_robtop_api(mongo)))
     while True:

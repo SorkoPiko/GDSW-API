@@ -76,6 +76,7 @@ def encode_sha1_with_salt(data: str) -> str:
 def robtop_to_data(levelString: str) -> tuple[list[dict[str, str]], list[dict[str, [str, int]]], list[dict[str, str]], list[str]]:
     if levelString == "-1":
         return [], [], [], []
+    print(levelString)
     body = levelString.split("#")
     levels = parse_levels(body[0].split("|"))
     creators = parse_creators(body[1].split("|"))
